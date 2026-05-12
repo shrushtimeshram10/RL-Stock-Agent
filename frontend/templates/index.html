@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTrade — AI Stock Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ── Sidebar ────────────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="logo">
+    <span class="logo-icon">◈</span>
+    <span class="logo-text">NeuralTrade</span>
+  </div>
+
+  <nav class="nav">
+    <a href="#" class="nav-item active" data-view="dashboard">
+      <span class="nav-icon">▦</span> Dashboard
+    </a>
+    <a href="#" class="nav-item" data-view="analyze">
+      <span class="nav-icon">⬡</span> Analyze
+    </a>
+    <a href="#" class="nav-item" data-view="results">
+      <span class="nav-icon">◎</span> Results
+    </a>
+    <a href="#" class="nav-item" data-view="about">
+      <span class="nav-icon">◈</span> About Model
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="model-badge">
+      <span class="badge-dot"></span>
+      PPO Agent Active
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main ───────────────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="page-title" id="pageTitle">Dashboard</h1>
+    </div>
+    <div class="topbar-right">
+      <div class="live-ticker" id="liveTicker">
+        <span class="ticker-item"><span class="ticker-sym">AAPL</span><span class="ticker-price">—</span></span>
+        <span class="ticker-item"><span class="ticker-sym">TSLA</span><span class="ticker-price">—</span></span>
+        <span class="ticker-item"><span class="ticker-sym">NVDA</span><span class="ticker-price">—</span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── VIEW: Dashboard ── -->
+  <section class="view active" id="view-dashboard">
+    <div class="hero-grid">
+      <div class="hero-card glass">
+        <div class="hero-label">AI-Powered Decisions</div>
+        <div class="hero-title">Reinforcement<br/>Learning<br/>Trading</div>
+        <p class="hero-sub">PPO agent trained on historical OHLCV data with 9 technical indicators. Get BUY / HOLD / SELL signals for any stock.</p>
+        <button class="btn-primary" onclick="switchView('analyze')">
+          Start Analysis <span>→</span>
+        </button>
+      </div>
+
+      <div class="stats-col">
+        <div class="stat-card glass">
+          <div class="stat-label">Algorithm</div>
+          <div class="stat-value mono">PPO</div>
+          <div class="stat-sub">Proximal Policy Optimization</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-label">Indicators</div>
+          <div class="stat-value mono">9</div>
+          <div class="stat-sub">RSI · MACD · BB · EMA · Volume</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-label">Actions</div>
+          <div class="stat-value mono">3</div>
+          <div class="stat-sub">Buy · Hold · Sell</div>
+        </div>
+      </div>
+
+      <div class="how-card glass">
+        <div class="how-title">How it works</div>
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><div><strong>Input</strong> — Choose a stock ticker and your budget</div></div>
+          <div class="step"><span class="step-num">02</span><div><strong>Train</strong> — PPO agent trains on 9 years of historical data</div></div>
+          <div class="step"><span class="step-num">03</span><div><strong>Backtest</strong> — Agent is tested on unseen out-of-sample data</div></div>
+          <div class="step"><span class="step-num">04</span><div><strong>Signal</strong> — Get a live BUY / HOLD / SELL recommendation</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popular stocks grid -->
+    <div class="section-header">
+      <h2 class="section-title">Popular Stocks</h2>
+      <span class="section-tag">Quick select →</span>
+    </div>
+    <div class="stocks-grid" id="stocksGrid">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- ── VIEW: Analyze ── -->
+  <section class="view" id="view-analyze">
+    <div class="analyze-layout">
+      <div class="input-panel glass">
+        <h2 class="panel-title">Configure Analysis</h2>
+
+        <div class="form-group">
+          <label class="form-label">Stock / Company</label>
+          <div class="search-wrap">
+            <input type="text" id="tickerInput" class="form-input" placeholder="Search or type ticker (e.g. AAPL)" autocomplete="off" />
+            <div class="search-dropdown" id="searchDropdown"></div>
+          </div>
+          <div class="ticker-preview" id="tickerPreview"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Investment Budget</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">$</span>
+            <input type="number" id="budgetInput" class="form-input" value="10000" min="100" step="100" />
+          </div>
+          <div class="budget-presets">
+            <button class="preset-btn" onclick="setBudget(1000)">$1K</button>
+            <button class="preset-btn" onclick="setBudget(5000)">$5K</button>
+            <button class="preset-btn active" onclick="setBudget(10000)">$10K</button>
+            <button class="preset-btn" onclick="setBudget(50000)">$50K</button>
+            <button class="preset-btn" onclick="setBudget(100000)">$100K</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Training Start</label>
+            <input type="date" id="startDate" class="form-input" value="2015-01-01" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Training End</label>
+            <input type="date" id="endDate" class="form-input" value="2024-01-01" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Training Intensity</label>
+          <div class="intensity-grid">
+            <label class="intensity-opt">
+              <input type="radio" name="intensity" value="20000" />
+              <span class="intensity-card">
+                <span class="i-name">Fast</span>
+                <span class="i-ts">20K steps</span>
+                <span class="i-time">~5 min</span>
+              </span>
+            </label>
+            <label class="intensity-opt">
+              <input type="radio" name="intensity" value="50000" checked />
+              <span class="intensity-card">
+                <span class="i-name">Balanced</span>
+                <span class="i-ts">50K steps</span>
+                <span class="i-time">~8 min</span>
+              </span>
+            </label>
+            <label class="intensity-opt">
+              <input type="radio" name="intensity" value="150000" />
+              <span class="intensity-card">
+                <span class="i-name">Deep</span>
+                <span class="i-ts">150K steps</span>
+                <span class="i-time">~10 min</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <button class="btn-primary btn-full" id="runBtn" onclick="runAnalysis()">
+          <span id="runBtnText">Run AI Analysis</span>
+        </button>
+      </div>
+
+      <!-- Progress / waiting area -->
+      <div class="progress-panel glass" id="progressPanel" style="display:none">
+        <div class="progress-header">
+          <div class="progress-spinner"></div>
+          <div>
+            <div class="progress-title" id="progressTitle">Initializing...</div>
+            <div class="progress-sub" id="progressSub">Setting up the environment</div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progressBar" style="width:0%"></div>
+        </div>
+        <div class="progress-pct" id="progressPct">0%</div>
+        <div class="progress-stages">
+          <div class="stage" id="stage-downloading">⬇ Download data</div>
+          <div class="stage" id="stage-indicators">⚙ Compute indicators</div>
+          <div class="stage" id="stage-training">🧠 Train PPO agent</div>
+          <div class="stage" id="stage-backtesting">📊 Backtest</div>
+          <div class="stage" id="stage-done">✓ Complete</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VIEW: Results ── -->
+  <section class="view" id="view-results">
+    <div id="noResults" class="empty-state glass">
+      <div class="empty-icon">◎</div>
+      <div class="empty-title">No results yet</div>
+      <div class="empty-sub">Run an analysis first to see the AI agent's recommendations and backtest charts.</div>
+      <button class="btn-primary" onclick="switchView('analyze')">Go to Analyze</button>
+    </div>
+
+    <div id="resultsContent" style="display:none">
+      <!-- Recommendation Hero -->
+      <div class="rec-row">
+        <div class="rec-card glass" id="recCard">
+          <div class="rec-ticker" id="recTicker">—</div>
+          <div class="rec-label">AI Recommendation</div>
+          <div class="rec-action" id="recAction">—</div>
+          <div class="rec-sub" id="recSub">—</div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card glass">
+            <div class="metric-label">RL Total Return</div>
+            <div class="metric-value" id="mRlReturn">—</div>
+          </div>
+          <div class="metric-card glass">
+            <div class="metric-label">Buy &amp; Hold Return</div>
+            <div class="metric-value" id="mBhReturn">—</div>
+          </div>
+          <div class="metric-card glass">
+            <div class="metric-label">RL Sharpe Ratio</div>
+            <div class="metric-value" id="mRlSharpe">—</div>
+          </div>
+          <div class="metric-card glass">
+            <div class="metric-label">Max Drawdown</div>
+            <div class="metric-value negative" id="mMaxDD">—</div>
+          </div>
+          <div class="metric-card glass">
+            <div class="metric-label">RL Final Value</div>
+            <div class="metric-value" id="mRlFinal">—</div>
+          </div>
+          <div class="metric-card glass">
+            <div class="metric-label">B&amp;H Final Value</div>
+            <div class="metric-value" id="mBhFinal">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Tabs -->
+      <div class="chart-tabs">
+        <button class="tab-btn active" data-chart="equity">Equity Curve</button>
+        <button class="tab-btn" data-chart="price">Price + Signals</button>
+        <button class="tab-btn" data-chart="rsi">RSI</button>
+        <button class="tab-btn" data-chart="macd">MACD</button>
+        <button class="tab-btn" data-chart="drawdown">Drawdown</button>
+      </div>
+
+      <div class="chart-container glass">
+        <canvas id="mainChart"></canvas>
+      </div>
+
+      <!-- Trades Table -->
+      <div class="section-header" style="margin-top:2rem">
+        <h2 class="section-title">Trade Log</h2>
+        <span class="section-tag" id="tradeCount">0 trades</span>
+      </div>
+      <div class="table-wrap glass">
+        <table class="trade-table">
+          <thead>
+            <tr><th>#</th><th>Date</th><th>Price</th><th>Action</th></tr>
+          </thead>
+          <tbody id="tradeTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VIEW: About ── -->
+  <section class="view" id="view-about">
+    <div class="about-layout">
+      <div class="about-card glass">
+        <h2>About the Model</h2>
+        <p>NeuralTrade uses a <strong>Proximal Policy Optimization (PPO)</strong> reinforcement learning agent from Stable-Baselines3. The agent learns to trade a single stock by interacting with a custom OpenAI Gymnasium environment.</p>
+
+        <h3>State Space (12 features)</h3>
+        <div class="feature-list">
+          <span class="feature-tag">Close Price</span>
+          <span class="feature-tag">Volume (normalized)</span>
+          <span class="feature-tag">EMA-20</span>
+          <span class="feature-tag">EMA-50</span>
+          <span class="feature-tag">RSI-14</span>
+          <span class="feature-tag">MACD</span>
+          <span class="feature-tag">MACD Signal</span>
+          <span class="feature-tag">BB Width</span>
+          <span class="feature-tag">Daily Return</span>
+          <span class="feature-tag">Cash Ratio</span>
+          <span class="feature-tag">Shares Held</span>
+          <span class="feature-tag">Unrealized PnL</span>
+        </div>
+
+        <h3>Action Space</h3>
+        <div class="action-explain">
+          <div class="ae-item buy">BUY — Deploy all cash into shares</div>
+          <div class="ae-item hold">HOLD — Maintain current position</div>
+          <div class="ae-item sell">SELL — Liquidate all shares</div>
+        </div>
+
+        <h3>Reward Function</h3>
+        <p>Reward = % change in portfolio value − 0.1 × drawdown penalty. This encourages the agent to grow wealth while penalising large losses.</p>
+
+        <h3>Architecture</h3>
+        <p>MlpPolicy with hidden layers [64, 64]. Trained with learning rate 3e-4, batch size 64, 10 epochs per update, γ=0.99, GAE λ=0.95.</p>
+
+        <div class="disclaimer">
+          ⚠ <strong>Disclaimer:</strong> This tool is for educational purposes only. Past backtest performance does not guarantee future returns. Do not make real financial decisions based solely on this model.
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
