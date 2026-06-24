@@ -280,6 +280,12 @@ def _update_training_progress(job_id, frac):
     )
 
 
+@app.route("/")
+def home():
+    return jsonify({
+        "message": "RL Stock Trading API is running",
+        "status": "online"
+    })
 
 @app.route("/api/stocks")
 def get_stocks():
