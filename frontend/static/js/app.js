@@ -1,6 +1,6 @@
 /* ── NeuralTrade Frontend ──────────────────────────────────────────────── */
 
-const API = 'http://localhost:5000/api';
+const API = 'https://rl-stock-agent.onrender.com/api';
 
 let allStocks = [];
 let currentJobId = null;
