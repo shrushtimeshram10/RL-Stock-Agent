@@ -91,7 +91,6 @@ class StockTradingEnv(gym.Env):
         )
         self.action_space = spaces.Discrete(3)
         self._max_steps   = len(self.df) - 1
-        self.reset()
 
     def _get_obs(self):
         row      = self.df.iloc[self.current_step]
@@ -195,19 +194,18 @@ def train_agent(train_df, total_timesteps=50_000, progress_callback=None):
     env = DummyVecEnv([lambda: StockTradingEnv(train_df)])
 
     model = PPO(
-        policy         = "MlpPolicy",
-        env            = env,
-        learning_rate  = 3e-4,
-        n_steps        = 2048,
-        batch_size     = 64,
-        n_epochs       = 10,
-        gamma          = 0.99,
-        gae_lambda     = 0.95,
-        clip_range     = 0.2,
-        ent_coef       = 0.01,
-        verbose        = 0,
+        policy="MlpPolicy",
+        env=env,
+        learning_rate=3e-4,
+        n_steps=512,
+        batch_size=32,
+        n_epochs=5,
+        gamma=0.99,
+        gae_lambda=0.95,
+        clip_range=0.2,
+        ent_coef=0.01,
+        verbose=0,
     )
-
     callback = TrainingCallback(
         check_freq      = max(1000, total_timesteps // 50),
         total_timesteps = total_timesteps,
